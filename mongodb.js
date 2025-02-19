@@ -1,15 +1,23 @@
-const { name } = require('ejs');
-const {MongoClient}=require('mongodb');
-const url='mongodb://127.0.0.1:27017';
-const client=new MongoClient(url);
+const mariadb = require('mariadb');
 
-async function connection(email,pass) {
-    let result=await client.connect();
-   var database= result.db('project');
-    let coll=database.collection('user');
-//    let fdata=await coll.find({Name:name,email:email});
-//    let data=await fdata.toArray();
-return coll;
+// Replace with your AWS RDS details
+const pool = mariadb.createPool({
+    host: 'database.chc04sk0qskl.us-west-2.rds.amazonaws.com', // RDS Endpoint
+    user: 'shubham',
+    password: 'shubham123',
+    database: 'database',
+    connectionLimit: 5
+});
+
+async function connection() {
+    let conn;
+    try {
+        conn = await pool.getConnection();
+        console.log('Connected to AWS RDS MariaDB!');
+        return conn;
+    } catch (err) {
+        console.error('Error connecting to AWS RDS:', err);
+    }
 }
 
-module.exports=connection;
+module.exports = connection;
