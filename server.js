@@ -3,7 +3,7 @@ const app=express();
 const fs=require('fs');
 const multer=require('multer');
 const body_parser=require('body-parser');
-const connect = require('./mongodb');
+const connect = require('./mariadb');
 const get_que = require('./getquestion');
 const pdftotext=require('./resumeparser');
 const cors=require('cors');
@@ -13,7 +13,7 @@ const retrieve = require('./retrieve_data');
 
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({extended:true}));
-app.use('/static',express.static(__dirname+'/public'));
+app.use(express.static('public'));
 app.set('view engine','ejs');
 app.use(cors());
 
@@ -92,8 +92,9 @@ app.get('/dashboard',async (req,res)=>{
    //  console.log(req.query.pass)
      let coll=await connect();
      let fdata=await coll.find({email:req.query.email});
-      let data=await fdata.toArray();
-      let profile=data[0].Name;
+      let data = await fdata.toArray();
+      let profile = data.length > 0 ? data[0].Name : "Guest";
+
       console.log(profile)
     //  let pdfdata= await pdftotext();
 
@@ -117,7 +118,7 @@ const uploads=multer({storage:storage});
 app.post('/resume-recognize',uploads.array("file"),async (req,res)=>{
  console.log(req.body);
 console.log(req.files);
-let file_data=(await pdftotext(__dirname+"/upload/user-resume.pdf"));
+let file_data = await pdftotext(req.files[0].path);
 console.log(file_data);
 let arr=[];
  arr= retrieve(file_data);
